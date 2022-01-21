@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>spep-paraprotein-frequency-screen</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<script src="jsonview.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  
+<style>
+    
+body {
+    font-family: monospace; 
+}
+    
+</style>
+
+<script>
+
+var sample;
+
+function getSample() {
+    
+    document.querySelector("#working").style.display = "block";
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/spep/resources/samples", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.responseType = "json";
+    xhttp.onload = function() {
+        sample = this.response;
+        document.querySelector("#json").innerHTML = "";
+        var tree = jsonview.create(sample);
+        jsonview.render(tree, document.querySelector("#json"));
+        jsonview.expand(tree);
+        tree.children.forEach(function(e) { jsonview.collapse(e); });
+        document.querySelector("#working").style.display = "none";
+        return;
+    }
+    xhttp.send();
+    return;
+    
+}
+
+function putSample() {
+    
+    document.querySelector("#working").style.display = "block";
+    sample.sebiaSerumCurve = document.querySelector("#sebiaSerumCurve").value;
+    sample.sebiaSerumGelControlCurve = document.querySelector("#sebiaSerumGelControlCurve").value;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("PUT", "/spep/resources/samples", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.responseType = "json";
+    xhttp.onload = function() {
+        sample = this.response;
+        document.querySelector("#prediction").textContent = sample.prediction + ( sample.prediction == 1 ? " (paraprotein detected)" : " (paraprotein not detected)" );
+        document.querySelector("#gammaRegionCutoff").textContent = sample.gamma_region_cutoff;
+        document.querySelector("#json").innerHTML = "";
+        var tree = jsonview.create(sample);
+        jsonview.render(tree, document.querySelector("#json"));
+        jsonview.expand(tree);
+        tree.children.forEach(function(e) { jsonview.collapse(e); });
+        chartSample();
+        curlSample();
+        document.querySelector("#working").style.display = "none";
+    }
+    xhttp.send(JSON.stringify(sample));
+    return;
+    
+}
+
+function chartSample() {
+    
+    var data = new google.visualization.DataTable();
+    data.addColumn("number", "Position");
+    data.addColumn("number", "Sample");
+    data.addColumn("number", "Control");
+    for(var x = 0; x < sample.sebiaSerumCurve_intArr.length; x++) {
+        data.addRow([x, sample.sebiaSerumCurve_intArr[x], sample.sebiaSerumGelControlCurve_intArr[x]]);
+    }
+    document.querySelector("#curves").textContent = "";
+    var chart = new google.visualization.LineChart(document.querySelector("#curves"));
+    var options = {
+        hAxis: {
+            title: 'Position'
+        },
+        vAxis: {
+            title: 'Intensity'
+        }
+    };
+    chart.draw(data, options);
+    return;
+    
+}
+
+function curlSample() {
+
+    document.querySelector("#curl").innerHTML = "<pre>curl -X PUT -H 'Content-Type: application/json' -d \\<br/>"
+        + "'{ <br/>"
+        + "    \"sebiaSerumCurve\" : <br/>"
+        + "        \"" + sample.sebiaSerumCurve + "\", <br/>"
+        + "    \"sebiaSerumGelControlCurve\" : <br/>"
+        + "        \"" + sample.sebiaSerumGelControlCurve + "\" <br/>"
+        + "}' \\<br/>"
+        + "http://localhost:8084/spep/resources/samples</pre>";
+    return;
+        
+}
+
+
+window.addEventListener("load", function() {
+
+    google.charts.load('current', {packages: ['corechart', 'line']});
+    
+    getSample();
+
+    document.querySelector("#Send").addEventListener("click", function() {
+        putSample();
+        return;
+    });
+
+    return;
+
+});
+
+</script>
+
+</head>
+
+<body>
+<div id="working" style="position: fixed; top: 0px; width: 150px; left: 50%; margin-left: -75px; text-align: center; background-color: red; color: white; font-weight: bold;">working...</div>
+<h3>Inputs</h3>
+    <form>
+        <table>
+            <tr><td>Sample Curve</td><td>:</td><td><input id="sebiaSerumCurve" type="text" size="100"/></td></tr>
+            <tr><td>Control Curve</td><td>:</td><td><input id="sebiaSerumGelControlCurve" type="text" size="100"/></td></tr>
+            <tr><td></td><td></td><td><input id="Send" type="button" value="Send"/></td></tr>
+        </table>
+    </form>
+    <h3>Outputs</h3>
+    <table>
+        <tr><td>Prediction</td><td>:</td><td><span id="prediction"></span></td></tr>
+        <tr><td>Gamma Region Cutoff</td><td>:</td><td><span id="gammaRegionCutoff"></span></td></tr>
+    </table>
+    <h3>Linux curl RESTful Web Service Invocation</h3>
+    <div id="curl">
+        <i>No curves sent to service yet.</i>
+    </div>
+    <h3>JSON Viewer (this is what is consumed and produced by the RESTful web service)</h3>
+    <div id="json">
+    </div>
+    <h3>Curves Plotted</h3>
+    <div id="curves">
+        <i>No curves sent to service yet.</i>
+    </div>
+    
+</body>
+
+</html>

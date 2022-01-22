@@ -13,7 +13,7 @@ import java.io.PrintStream;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -47,10 +47,10 @@ public class Samples {
 
     }
 
-    @PUT
+    @POST
     @Consumes("application/json")
     @Produces("application/json")
-    public Sample putJson(Sample sample) throws IOException, InterruptedException {
+    public Sample postJson(Sample sample) throws IOException, InterruptedException {
 
         File csvFile = File.createTempFile("sample", ".csv");
         PrintStream csvPrintStream = new PrintStream(csvFile);
@@ -58,7 +58,7 @@ public class Samples {
         csvPrintStream.println(String.format("%s,%s", sample.sebiaSerumCurveHex, sample.sebiaSerumGelControlCurveHex));
         csvPrintStream.close();
         String commandLine = String.format(
-            "cd /home/pyewacket/spep-paraprotein-frequency-screen && python3 paraprotein_screen.py %s",
+            "cd /home/ec2-user/spep-paraprotein-frequency-screen && python3 paraprotein_screen.py %s",
             csvFile.getAbsoluteFile()
         );
         ProcessBuilder pb = new ProcessBuilder(new String[] {"sh"});

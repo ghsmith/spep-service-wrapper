@@ -5,7 +5,7 @@
 <title>spep-paraprotein-frequency-screen</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<script src="jsonview.js"></script>
+<script src="https://trddx.emory.edu/spep/jsonview.js"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   
 <style>
@@ -24,7 +24,7 @@ function getSample() {
     
     document.querySelector("#working").style.display = "block";
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "/spep/resources/samples", true);
+    xhttp.open("GET", "https://trddx.emory.edu/spep/resources/samples", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.responseType = "json";
     xhttp.onload = function() {
@@ -42,13 +42,13 @@ function getSample() {
     
 }
 
-function putSample() {
+function postSample() {
     
     document.querySelector("#working").style.display = "block";
     sample.sebiaSerumCurve = document.querySelector("#sebiaSerumCurve").value;
     sample.sebiaSerumGelControlCurve = document.querySelector("#sebiaSerumGelControlCurve").value;
     var xhttp = new XMLHttpRequest();
-    xhttp.open("PUT", "/spep/resources/samples", true);
+    xhttp.open("POST", "https://trddx.emory.edu/spep/resources/samples", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.responseType = "json";
     xhttp.onload = function() {
@@ -95,14 +95,14 @@ function chartSample() {
 
 function curlSample() {
 
-    document.querySelector("#curl").innerHTML = "<pre>curl -X PUT -H 'Content-Type: application/json' -d \\<br/>"
+    document.querySelector("#curl").innerHTML = "<pre>curl -X POST -H 'Content-Type: application/json' -d \\<br/>"
         + "'{ <br/>"
         + "    \"sebiaSerumCurve\" : <br/>"
         + "        \"" + sample.sebiaSerumCurve + "\", <br/>"
         + "    \"sebiaSerumGelControlCurve\" : <br/>"
         + "        \"" + sample.sebiaSerumGelControlCurve + "\" <br/>"
         + "}' \\<br/>"
-        + "http://localhost:8084/spep/resources/samples</pre>";
+        + "https://trddx.emory.edu/spep/resources/samples</pre>";
     return;
         
 }
@@ -115,7 +115,7 @@ window.addEventListener("load", function() {
     getSample();
 
     document.querySelector("#Send").addEventListener("click", function() {
-        putSample();
+        postSample();
         return;
     });
 
